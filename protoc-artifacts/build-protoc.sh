@@ -94,11 +94,13 @@ checkArch ()
       elif [[ "$ARCH" == aarch_64 ]]; then
         assertEq $format "elf64-little" $LINENO
       elif [[ "$ARCH" == ppcle_64 ]]; then
-	if [[ $host_machine == ppc64le ]];then
-	  assertEq $format "elf64-powerpcle" $LINENO
-	else
+	      if [[ $host_machine == ppc64le ]];then
+	        assertEq $format "elf64-powerpcle" $LINENO
+	      else
           assertEq $format "elf64-little" $LINENO
-	fi
+	      fi
+      elif [[ "$ARCH" == s390_64 ]]; then
+        assertEq $format "elf64-s390" $LINENO
       else
         fail "Unsupported arch: $ARCH"
       fi
@@ -151,7 +153,10 @@ checkDependencies ()
     elif [[ "$ARCH" == aarch_64 ]]; then
       dump_cmd='objdump -p '"$1"' | grep NEEDED'
       white_list="libpthread\.so\.0\|libm\.so\.6\|libc\.so\.6\|ld-linux-aarch64\.so\.1"
-    fi
+    elif [[ "$ARCH" == s390_64 ]]; then
+     dump_cmd='objdump -p '"$1"' | grep NEEDED'
+     white_list="libpthread\.so\.0\|libm\.so\.6\|libc\.so\.6\|ld64\.so\.1"
+  fi
   elif [[ "$OS" == osx ]]; then
     dump_cmd='otool -L '"$1"' | fgrep dylib'
     white_list="libz\.1\.dylib\|libstdc++\.6\.dylib\|libSystem\.B\.dylib"
@@ -215,6 +220,9 @@ elif [[ "$(uname)" == Linux* ]]; then
     elif [[ "$ARCH" == ppcle_64 ]]; then
       CXXFLAGS="$CXXFLAGS -m64"
       CONFIGURE_ARGS="$CONFIGURE_ARGS --host=powerpc64le-linux-gnu"
+    elif [[ "$ARCH" == s390_64 ]]; then
+      CXXFLAGS="$CXXFLAGS -m64"
+      CONFIGURE_ARGS="$CONFIGURE_ARGS --host=s390x-linux-gnu"
     else
       fail "Unsupported arch: $ARCH"
     fi
